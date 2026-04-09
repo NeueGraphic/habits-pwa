@@ -380,29 +380,73 @@
   .stat-label { font-size: 12px; color: var(--label3); margin-top: 2px; font-weight: 500; }
 
   /* ── Heatmap ── */
-  .heatmap-card {
+  /* ── Calendar ── */
+  .calendar-card {
     background: var(--surface);
     border-radius: var(--radius-md);
     margin: 12px 16px 0;
     padding: 16px;
     box-shadow: var(--shadow);
   }
-  .heatmap-title { font-size: 13px; font-weight: 600; color: var(--label3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-  .heatmap-grid {
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap: 4px;
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
   }
-  .heatmap-col { display: flex; flex-direction: column; gap: 4px; }
-  .heatmap-cell {
-    aspect-ratio: 1;
-    border-radius: 3px;
-    background: var(--label4);
-    transition: background var(--ease), transform 0.12s var(--spring);
+  .calendar-month {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--label);
+  }
+  .calendar-nav {
+    background: none;
+    border: none;
+    padding: 4px 8px;
     cursor: pointer;
+    color: var(--blue);
+    font-size: 18px;
+    line-height: 1;
+    border-radius: 6px;
   }
-  .heatmap-cell:active { transform: scale(0.72); }
-  .heatmap-cell.done { opacity: 1; }
+  .calendar-nav:active { opacity: 0.5; }
+  .calendar-nav:disabled { color: var(--label4); cursor: default; }
+  .calendar-dow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 6px;
+  }
+  .calendar-dow span {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--label3);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--ease), color var(--ease), transform 0.12s var(--spring);
+    color: var(--label);
+  }
+  .cal-day:active { transform: scale(0.82); }
+  .cal-day.empty { cursor: default; }
+  .cal-day.future { color: var(--label4); cursor: default; pointer-events: none; }
+  .cal-day.today { font-weight: 700; }
+  .cal-day.done { color: #fff; }
+  .cal-day.today:not(.done) { border: 2px solid var(--blue); color: var(--blue); }
 
   /* ── Danger zone ── */
   .danger-card {
@@ -715,9 +759,16 @@
     <div class="scroll-content">
       <div class="detail-hero" id="detail-hero"></div>
       <div class="stats-grid" id="stats-grid"></div>
-      <div class="heatmap-card" id="heatmap-card">
-        <div class="heatmap-title">10-Week History</div>
-        <div class="heatmap-grid" id="heatmap-grid"></div>
+      <div class="calendar-card" id="calendar-card">
+        <div class="calendar-header">
+          <button class="calendar-nav" id="cal-prev">&#8249;</button>
+          <div class="calendar-month" id="cal-month-label"></div>
+          <button class="calendar-nav" id="cal-next">&#8250;</button>
+        </div>
+        <div class="calendar-dow">
+          <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
       </div>
       <div class="danger-card">
         <div class="danger-row" id="btn-delete">
@@ -945,6 +996,67 @@ function toggleHabit(id, btn) {
   renderHome();
 }
 
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function renderCalendar(habit) {
+  const todayStr = today();
+  const now = new Date();
+  const label = new Date(calYear, calMonth, 1)
+    .toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
+  $('cal-month-label').textContent = label;
+
+  // Disable next if already on current month
+  $('cal-next').disabled = (calYear === now.getFullYear() && calMonth === now.getMonth());
+
+  const grid = $('calendar-grid');
+  grid.innerHTML = '';
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+  // Empty leading cells
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    grid.appendChild(empty);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${calYear}-${String(calMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isFuture = key > todayStr;
+    const isToday = key === todayStr;
+    const isDone = !!habit.completions[key];
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-day' +
+      (isFuture ? ' future' : '') +
+      (isToday ? ' today' : '') +
+      (isDone ? ' done' : '');
+    cell.textContent = d;
+    if (isDone) cell.style.background = habit.colour;
+
+    if (!isFuture) {
+      cell.addEventListener('click', () => toggleDate(activeHabitId, key));
+    }
+    grid.appendChild(cell);
+  }
+
+  // Wire nav buttons (replace listeners)
+  const prevBtn = $('cal-prev');
+  const nextBtn = $('cal-next');
+  prevBtn.onclick = () => {
+    calMonth--;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar(habits.find(h => h.id === activeHabitId));
+  };
+  nextBtn.onclick = () => {
+    calMonth++;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar(habits.find(h => h.id === activeHabitId));
+  };
+}
+
 function toggleDate(id, dateKey) {
   const habit = habits.find(h => h.id === id);
   if (habit.completions[dateKey]) {
@@ -960,6 +1072,8 @@ function toggleDate(id, dateKey) {
 // ── Detail ──
 function openDetail(id) {
   activeHabitId = id;
+  calYear = new Date().getFullYear();
+  calMonth = new Date().getMonth();
   renderDetail();
   const home = $('screen-home');
   const detail = $('screen-detail');
@@ -998,25 +1112,8 @@ function renderDetail() {
     <div class="stat-card"><div class="stat-value" style="color:${habit.colour}">${total}</div><div class="stat-label">Total days</div></div>
   `;
 
-  // Heatmap (10 weeks = 70 days, displayed as 10 columns of 7)
-  const grid = $('heatmap-grid');
-  grid.innerHTML = '';
-  const now = new Date();
-  for (let col = 9; col >= 0; col--) {
-    const colEl = document.createElement('div');
-    colEl.className = 'heatmap-col';
-    for (let row = 6; row >= 0; row--) {
-      const d = new Date(now);
-      d.setDate(now.getDate() - (col * 7 + row));
-      const key = d.toISOString().slice(0,10);
-      const cell = document.createElement('div');
-      cell.className = 'heatmap-cell' + (habit.completions[key] ? ' done' : '');
-      if (habit.completions[key]) cell.style.background = habit.colour;
-      cell.addEventListener('click', () => toggleDate(activeHabitId, key));
-      colEl.appendChild(cell);
-    }
-    grid.appendChild(colEl);
-  }
+  // Calendar
+  renderCalendar(habit);
 }
 
 function goHome() {
