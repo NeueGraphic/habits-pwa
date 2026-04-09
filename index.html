@@ -398,8 +398,10 @@
     aspect-ratio: 1;
     border-radius: 3px;
     background: var(--label4);
-    transition: background var(--ease);
+    transition: background var(--ease), transform 0.12s var(--spring);
+    cursor: pointer;
   }
+  .heatmap-cell:active { transform: scale(0.72); }
   .heatmap-cell.done { opacity: 1; }
 
   /* ── Danger zone ── */
@@ -943,6 +945,18 @@ function toggleHabit(id, btn) {
   renderHome();
 }
 
+function toggleDate(id, dateKey) {
+  const habit = habits.find(h => h.id === id);
+  if (habit.completions[dateKey]) {
+    delete habit.completions[dateKey];
+  } else {
+    habit.completions[dateKey] = true;
+  }
+  saveHabits();
+  renderDetail();
+  renderHome();
+}
+
 // ── Detail ──
 function openDetail(id) {
   activeHabitId = id;
@@ -998,6 +1012,7 @@ function renderDetail() {
       const cell = document.createElement('div');
       cell.className = 'heatmap-cell' + (habit.completions[key] ? ' done' : '');
       if (habit.completions[key]) cell.style.background = habit.colour;
+      cell.addEventListener('click', () => toggleDate(activeHabitId, key));
       colEl.appendChild(cell);
     }
     grid.appendChild(colEl);
