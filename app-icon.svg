@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1A85FF"/>
+      <stop offset="100%" stop-color="#0055D4"/>
+    </linearGradient>
+
+    <!-- Subtle inner highlight -->
+    <radialGradient id="shine" cx="38%" cy="28%" r="55%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Checkmark glow -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Soft shadow for the card -->
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="20" flood-color="#000" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Background — solid colour, no rounded corners (Apple adds those) -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- Shine overlay -->
+  <rect width="1024" height="1024" fill="url(#shine)"/>
+
+  <!-- Subtle grid texture (very light) -->
+  <g opacity="0.06">
+    <line x1="0" y1="256" x2="1024" y2="256" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="512" x2="1024" y2="512" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="768" x2="1024" y2="768" stroke="#fff" stroke-width="1"/>
+    <line x1="256" y1="0" x2="256" y2="1024" stroke="#fff" stroke-width="1"/>
+    <line x1="512" y1="0" x2="512" y2="1024" stroke="#fff" stroke-width="1"/>
+    <line x1="768" y1="0" x2="768" y2="1024" stroke="#fff" stroke-width="1"/>
+  </g>
+
+  <!-- White card / clipboard shape -->
+  <rect x="200" y="210" width="624" height="680"
+        rx="64" ry="64"
+        fill="rgba(255,255,255,0.14)"
+        filter="url(#cardShadow)"/>
+  <rect x="200" y="210" width="624" height="680"
+        rx="64" ry="64"
+        fill="rgba(255,255,255,0.10)"/>
+
+  <!-- Habit lines on the card -->
+  <!-- Line 1 - completed (green check) -->
+  <rect x="288" y="350" width="340" height="20" rx="10" fill="rgba(255,255,255,0.20)"/>
+  <!-- Check circle for line 1 -->
+  <circle cx="680" cy="360" r="34" fill="#34C759"/>
+  <!-- Checkmark for line 1 -->
+  <polyline points="663,361 674,373 698,348"
+            fill="none" stroke="#fff" stroke-width="18"
+            stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Line 2 - completed -->
+  <rect x="288" y="444" width="280" height="20" rx="10" fill="rgba(255,255,255,0.20)"/>
+  <circle cx="680" cy="454" r="34" fill="#34C759"/>
+  <polyline points="663,455 674,467 698,442"
+            fill="none" stroke="#fff" stroke-width="18"
+            stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Line 3 - in progress (hollow) -->
+  <rect x="288" y="538" width="310" height="20" rx="10" fill="rgba(255,255,255,0.20)"/>
+  <circle cx="680" cy="548" r="34" fill="none" stroke="rgba(255,255,255,0.40)" stroke-width="5"/>
+
+  <!-- Line 4 - not started (hollow) -->
+  <rect x="288" y="632" width="260" height="20" rx="10" fill="rgba(255,255,255,0.20)"/>
+  <circle cx="680" cy="642" r="34" fill="none" stroke="rgba(255,255,255,0.40)" stroke-width="5"/>
+
+  <!-- Streak badge at the bottom -->
+  <rect x="312" y="730" width="216" height="72" rx="36" fill="rgba(255,149,0,0.90)"/>
+  <!-- Flame emoji approximation -->
+  <text x="344" y="780" font-size="38" fill="#fff">🔥</text>
+  <text x="393" y="778" font-family="-apple-system, 'SF Pro Display', sans-serif"
+        font-size="30" font-weight="700" fill="#fff" letter-spacing="-0.5">7 days</text>
+
+  <!-- Bottom shine line -->
+  <rect x="200" y="870" width="624" height="2" rx="1" fill="rgba(255,255,255,0.12)"/>
+
+</svg>
